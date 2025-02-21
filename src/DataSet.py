@@ -22,10 +22,13 @@ class Mapillary_Vistas_Segmentation_Data(Dataset):
         label = Image.open(os.path.join(self.label_path, self.label_files[idx]))
 
         if self.transform:
+
             image = self.transform(image)
             label = self.transform(label)
+            
         else:
-            image = transforms.ToTensor()(image)
-            label = transforms.ToTensor()(label)
+            
+            image = transforms.ToTensor(image)
+            label = transforms.ToTensor(label)
 
             return image, label
