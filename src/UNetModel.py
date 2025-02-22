@@ -30,7 +30,9 @@ class UNetDecoder(nn.Module):
 
     def forward(self,x,skip):
         x = self.upconv(x)
-        x = torch.concat([x, skip],dim=1)
+        if x.size()[2:] != skip.size()[2:]:
+            skip = F.interpolate(skip, size=x.size()[2:], mode='bilinear', align_corners=False)
+        x = torch.cat([x, skip],dim=1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
 
@@ -66,7 +68,7 @@ class UnetModel(nn.Module):
         self.decoder3 = UNetDecoder(256,128)
         self.decoder4 = UNetDecoder(128,64)
 
-        self.final_conv = nn.Conv2d(64,1,kernel_size=1)
+        self.final_conv = nn.Conv2d(64,66,kernel_size=1)
     
     def forward(self,x):
         x, skip1 = self.encoder1(x)
@@ -82,6 +84,7 @@ class UnetModel(nn.Module):
         x = self.decoder4(x,skip1)
         
         x = self.final_conv(x)
+        x = F.softmax(x, dim=1)
 
         return x 
 
