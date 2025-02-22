@@ -48,3 +48,40 @@ class UNetBottleneck(nn.Module):
         x = F.relu(self.conv2(x))
 
         return x 
+    
+
+class UnetModel(nn.Module):
+    def __init__(self):
+        super(UnetModel,self).__init__()
+
+        self.encoder1 = UNetEncoder(3,64)
+        self.encoder2 = UNetEncoder(64,128)
+        self.encoder3 = UNetEncoder(128,256)
+        self.encoder4 = UNetEncoder(256,512)
+
+        self.bottleneck = UNetBottleneck(512,1024)
+
+        self.decoder1 = UNetDecoder(1024,512)
+        self.decoder2 = UNetDecoder(512,256)
+        self.decoder3 = UNetDecoder(256,128)
+        self.decoder4 = UNetDecoder(128,64)
+
+        self.final_conv = nn.Conv2d(64,1,kernel_size=1)
+    
+    def forward(self,x):
+        x, skip1 = self.encoder1(x)
+        x, skip2 = self.encoder2(x)
+        x, skip3 = self.encoder3(x)
+        x, skip4 = self.encoder4(x) 
+
+        x = self.bottleneck(x)
+
+        x = self.decoder1(x,skip4)
+        x = self.decoder2(x,skip3)
+        x = self.decoder3(x,skip2)
+        x = self.decoder4(x,skip1)
+        
+        x = self.final_conv(x)
+
+        return x 
+
