@@ -30,8 +30,7 @@ class UNetDecoder(nn.Module):
 
     def forward(self,x,skip):
         x = self.upconv(x)
-        if x.size()[2:] != skip.size()[2:]:
-            skip = F.interpolate(skip, size=x.size()[2:], mode='bilinear', align_corners=False)
+        
         x = torch.cat([x, skip],dim=1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))

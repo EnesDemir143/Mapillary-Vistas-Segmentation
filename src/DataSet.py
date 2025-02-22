@@ -6,8 +6,9 @@ import os
 from PIL import Image
 
 class Mapillary_Vistas_Segmentation_Data(Dataset):
-    def __init__(self, path, transform=None):
-        self.transform = transform
+    def __init__(self, path, image_transform=None, label_transform=None):
+        self.image_transform = image_transform
+        self.label_transform = label_transform        
         self.path = path
         self.image_path = os.path.join(self.path, 'images')
         self.label_path = os.path.join(self.path, 'labels')
@@ -21,14 +22,17 @@ class Mapillary_Vistas_Segmentation_Data(Dataset):
         image = Image.open(os.path.join(self.image_path, self.image_files[idx]))
         label = Image.open(os.path.join(self.label_path, self.label_files[idx]))
 
-        if self.transform:
-
-            image = self.transform(image)
-            label = self.transform(label)
-            
+        if self.image_transform:
+                image = self.image_transform(image)
         else:
-            
-            image = transforms.ToTensor(image)
-            label = transforms.ToTensor(label)
+                image = transforms.ToTensor()(image)
 
-            return image, label
+        if self.label_transform:
+                label = self.label_transform(label)
+        else:
+                label = transforms.ToTensor()(label)
+
+        label = label.squeeze(0)  
+        label = (label * 255).long()    
+
+        return image, label
